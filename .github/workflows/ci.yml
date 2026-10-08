@@ -1,0 +1,25 @@
+name: Calidad y pruebas
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - run: uv run --frozen ruff check .
+      - run: uv run --frozen ruff format --check .
+      - run: uv run --frozen pytest
+      - name: Comprobar exportación de dependencias
+        run: |
+          uv export --frozen --no-dev --no-emit-project --no-hashes --no-header --output-file /tmp/requirements.txt
+          diff -u requirements.txt /tmp/requirements.txt
